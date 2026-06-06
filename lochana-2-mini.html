@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Maker Engine</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+    min-height:100vh;
+    padding:30px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    margin-bottom:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,.2);
+}
+
+h1,h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input,textarea{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    background:#2196f3;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+button:hover{
+    background:#0b7dda;
+}
+
+.question-card{
+    border:1px solid #ddd;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+.quiz-option{
+    margin:10px 0;
+}
+
+.result{
+    font-size:22px;
+    text-align:center;
+    margin-top:15px;
+    color:green;
+}
+
+.template{
+    background:#f1f1f1;
+    padding:10px;
+    border-radius:10px;
+    margin:10px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <h1>📝 Quiz Maker Engine</h1>
+
+        <input type="text" id="question" placeholder="Enter Question">
+
+        <input type="text" id="op1" placeholder="Option 1">
+        <input type="text" id="op2" placeholder="Option 2">
+        <input type="text" id="op3" placeholder="Option 3">
+        <input type="text" id="op4" placeholder="Option 4">
+
+        <input type="number" id="answer"
+               placeholder="Correct Answer (1-4)"
+               min="1" max="4">
+
+        <button onclick="addQuestion()">Add Question</button>
+        <button onclick="saveQuiz()">Save Quiz Template</button>
+    </div>
+
+    <div class="card">
+        <h2>Saved Quiz Templates</h2>
+        <div id="templates"></div>
+    </div>
+
+    <div class="card">
+        <h2>Student Quiz Section</h2>
+        <form id="quizForm"></form>
+        <button onclick="submitQuiz()">Submit Quiz</button>
+        <div class="result" id="score"></div>
+    </div>
+
+</div>
+
+<script>
+
+let questions = JSON.parse(localStorage.getItem("quiz")) || [];
+
+renderQuiz();
+renderTemplates();
+
+function addQuestion(){
+
+    let q = document.getElementById("question").value;
+    let o1 = document.getElementById("op1").value;
+    let o2 = document.getElementById("op2").value;
+    let o3 = document.getElementById("op3").value;
+    let o4 = document.getElementById("op4").value;
+    let ans = document.getElementById("answer").value;
+
+    if(!q || !o1 || !o2 || !o3 || !o4 || !ans){
+        alert("Fill all fields");
+        return;
+    }
+
+    questions.push({
+        question:q,
+        options:[o1,o2,o3,o4],
+        answer:Number(ans)
+    });
+
+    renderQuiz();
+
+    document.getElementById("question").value="";
+    document.getElementById("op1").value="";
+    document.getElementById("op2").value="";
+    document.getElementById("op3").value="";
+    document.getElementById("op4").value="";
+    document.getElementById("answer").value="";
+}
+
+function saveQuiz(){
+    localStorage.setItem("quiz",JSON.stringify(questions));
+    alert("Quiz Template Saved Successfully!");
+    renderTemplates();
+}
+
+function renderTemplates(){
+
+    let temp=document.getElementById("templates");
+
+    if(questions.length===0){
+        temp.innerHTML="No Templates Saved";
+        return;
+    }
+
+    temp.innerHTML="";
+
+    questions.forEach((q,index)=>{
+        temp.innerHTML+=`
+        <div class="template">
+            <b>Q${index+1}:</b> ${q.question}
+        </div>
+        `;
+    });
+}
+
+function renderQuiz(){
+
+    let form=document.getElementById("quizForm");
+
+    form.innerHTML="";
+
+    questions.forEach((q,index)=>{
+
+        let html=`
+        <div class="question-card">
+            <h3>${index+1}. ${q.question}</h3>
+        `;
+
+        q.options.forEach((op,i)=>{
+            html+=`
+            <div class="quiz-option">
+                <input type="radio"
+                       name="q${index}"
+                       value="${i+1}">
+                ${op}
+            </div>
+            `;
+        });
+
+        html+="</div>";
+
+        form.innerHTML+=html;
+    });
+}
+
+function submitQuiz(){
+
+    let score=0;
+
+    questions.forEach((q,index)=>{
+
+        let selected=document.querySelector(
+            `input[name="q${index}"]:checked`
+        );
+
+        if(selected &&
+           Number(selected.value)===q.answer){
+            score++;
+        }
+    });
+
+    document.getElementById("score").innerHTML=
+    `🎯 Score: ${score} / ${questions.length}`;
+}
+</script>
+</body>
+</html>
